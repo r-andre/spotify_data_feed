@@ -6,27 +6,51 @@ Spotify data feed:
 Exctract, transform, and load Spotify user data
 '''
 
+# Import libraries:
 import pandas as pd
 import sqlalchemy
 #from sqlalchemy.orm import sessionmaker
 import requests
 import json
 import sqlite3
-# from datetime import datetime
 import datetime
 
+# Import modules:
 import user # module that stores Spotify username and access token
-
-############
-# EXCTRACT #
-############
 
 # Connecting to the database:
 DATABASE_LOCATION = 'sqlite:///my_played_tracks.sqlite'
 USERNAME = user.NAME
 TOKEN = user.TOKEN
 
-# Starting the extraction process:
+# Function to validate the data:
+def check_if_valid_data(df:pd.DataFrame)->bool:
+    # Give an error message when the dataframe is empty:
+    if df.empty:
+        print("Error 01: No songs downloaded...execution stopped!")
+        return False
+
+    # Primary key check:
+    if pd.Series(df['Played_at']).is_unique:
+        pass
+    else:
+        raise Exception("Error 02: Primary Key Check failed!")
+
+    # Check for NaN values:
+    if df.isnull().values.any():
+        raise Exception("Error 03: NaN detected!")
+
+    # Verify only songs from the past 24 hours are stored:
+    yesterday = datetime.datetime.now() - datetime.datetime.timedelta(days=1)
+    yesterday = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
+    timestamps = df['Timestamp'].tolist()
+    for t in timestamps:
+        if datetime.datetime.strptime(t, "%Y-%m-%d") != yesterday:
+            raise Exception(
+        "Error 04: >= 1 listed song was not played in the last 24 hours!"
+        )
+
+# Starting the ETL procedure:
 if __name__ == '__main__':
 
     # Defining header:
@@ -77,14 +101,6 @@ if __name__ == '__main__':
 
     print(song_df)
 
-#############
-# TRANSFORM #
-#############
-
-# WIP
-
-########
-# LOAD #
-########
-
-# WIP
+    # Validating the data:
+    if check_if_valid_data:
+        print("Data valid...proceeding to Load stage.")
