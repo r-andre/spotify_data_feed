@@ -103,12 +103,13 @@ if __name__ == '__main__':
     if check_if_valid_data:
         print("Data valid...proceeding to Load stage.")
 
-    # Load data into database:
+    # Establishing database connection:
     DATABASE = 'my_played_tracks.sqlite' # database name
     engine = sqlalchemy.create_engine('sqlite:///' + DATABASE)
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
+    # Defining the SQL query:
     sql_query = '''
     CREATE TABLE IF NOT EXISTS my_played_tracks(
         Song VARCHAR(200),
@@ -122,6 +123,7 @@ if __name__ == '__main__':
     cursor.execute(sql_query)
     print("Successfully opened database")
 
+    # Storing the data in the database:
     try:
         song_df.to_sql('my_played_tracks', engine, index=False, if_exists='append')
     except:
