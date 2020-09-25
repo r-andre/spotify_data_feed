@@ -18,8 +18,6 @@ import datetime
 # Import modules:
 import user # module that stores Spotify username and access token
 
-# Connecting to the database:
-DATABASE_LOCATION = 'sqlite:///my_played_tracks.sqlite'
 USERNAME = user.NAME
 TOKEN = user.TOKEN
 
@@ -104,3 +102,30 @@ if __name__ == '__main__':
     # Validating the data:
     if check_if_valid_data:
         print("Data valid...proceeding to Load stage.")
+
+    # Load data into database:
+    DATABASE = 'my_played_tracks.sqlite' # database name
+    engine = sqlalchemy.create_engine('sqlite:///' + DATABASE)
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    sql_query = '''
+    CREATE TABLE IF NOT EXISTS my_played_tracks(
+        Song VARCHAR(200),
+        Artist VARCHAR(200),
+        Played_at VARCHAR(200),
+        Timestamp VARCHAR(200),
+        CONSTRAINT primary_key_constraint PRIMARY_KEY (Played_at)
+    )
+    '''
+
+    cursor.execute(sql_query)
+    print("Successfully opened database")
+
+    try:
+        song_df.to_sql('my_played_tracks', engine, index=False, if_exists='append')
+    except:
+        print("Warning! Data already exists in the database!")
+
+    print("Closing the database...")
+    conn.close()
